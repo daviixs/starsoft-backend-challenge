@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Reservation } from './reservation.entity';
 
 @Entity('sales')
+@Unique(['reservationId'])
 export class Sale {
   @PrimaryGeneratedColumn('uuid')
   id: string;

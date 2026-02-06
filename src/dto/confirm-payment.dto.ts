@@ -1,4 +1,4 @@
-import { IsUUID, IsNotEmpty } from 'class-validator';
+import { IsUUID, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ConfirmPaymentDto {
@@ -9,6 +9,14 @@ export class ConfirmPaymentDto {
   @IsUUID('4', { message: 'reservationId deve ser um UUID v4 válido' })
   @IsNotEmpty({ message: 'reservationId não pode ser vazio' })
   reservationId: string;
+
+  @ApiProperty({
+    description: 'Chave de idempotência para confirmação (opcional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'idempotencyKey deve ser uma string' })
+  idempotencyKey?: string;
 
   @ApiProperty({
     description: 'ID do usuário que fez a reserva (UUID v4)',

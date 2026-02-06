@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
 import {
@@ -43,6 +43,7 @@ export class BookingsService {
    */
   async reserveSeats(dto: ReserveSeatsDto): Promise<Reservation> {
     const { userId, sessionId, seatNumbers } = dto;
+    const sortedSeatNumbers = [...seatNumbers].sort();
 
     // 1. Verificar se sessão existe
     const session = await this.sessionRepository.findOne({
@@ -67,9 +68,9 @@ export class BookingsService {
     }
 
     // 4. Adquirir locks para os assentos (ordem alfabética = anti-deadlock)
-    const lockKeys = seatNumbers
-      .sort()
-      .map((seat) => `seat:lock:${sessionId}:${seat}`);
+    const lockKeys = sortedSeatNumbers.map(
+      (seat) => `seat:lock:${sessionId}:${seat}`,
+    );
 
     const locks = await this.redisLock.acquireMultiple(lockKeys, 5000);
 
@@ -88,16 +89,17 @@ export class BookingsService {
         const seats = await queryRunner.manager.find(Seat, {
           where: {
             sessionId,
-            seatNumber: In(seatNumbers),
+            seatNumber: In(sortedSeatNumbers),
             status: SeatStatus.AVAILABLE,
           },
+          order: { seatNumber: 'ASC' },
           lock: { mode: 'pessimistic_write' },
         });
 
         // Verificar se todos os assentos estão disponíveis
-        if (seats.length !== seatNumbers.length) {
+        if (seats.length !== sortedSeatNumbers.length) {
           const foundSeats = seats.map((s) => s.seatNumber);
-          const unavailable = seatNumbers.filter(
+          const unavailable = sortedSeatNumbers.filter(
             (s) => !foundSeats.includes(s),
           );
           throw new SeatUnavailableException(unavailable);
@@ -162,40 +164,56 @@ export class BookingsService {
    * CONFIRMAÇÃO DE PAGAMENTO
    */
   async confirmPayment(dto: ConfirmPaymentDto): Promise<Sale> {
-    const { reservationId, userId } = dto;
+    const { reservationId, userId, idempotencyKey: providedKey } = dto;
+    const idempotencyKey =
+      providedKey || `confirm:${reservationId}:${userId}`.toLowerCase();
 
-    // 1. Buscar reserva
-    const reservation = await this.reservationRepository.findOne({
-      where: { id: reservationId, userId },
-      relations: ['session'],
-    });
-
-    if (!reservation) {
-      throw new ReservationNotFoundException(reservationId);
+    // Retorna do cache se já processado
+    const cachedSale = await this.redisLock.getCache<Sale>(idempotencyKey);
+    if (cachedSale) {
+      this.logger.debug(`Returning cached sale for ${idempotencyKey}`);
+      return cachedSale;
     }
 
-    // 2. Verificar se expirou
-    if (new Date() > reservation.expiresAt) {
-      throw new ReservationExpiredException(reservationId);
+    // Lock distribuído para confirmação
+    const lockKey = `reservation:confirm:${reservationId}`;
+    const lock = await this.redisLock.acquire(lockKey, 8000, 5, 50);
+    if (!lock) {
+      throw new ConflictException('Reservation confirmation in progress');
     }
 
-    // 3. Verificar se já foi confirmada
-    if (reservation.status === ReservationStatus.CONFIRMED) {
-      const existingSale = await this.saleRepository.findOne({
-        where: { reservationId },
-      });
-      if (!existingSale) {
-        throw new ReservationNotFoundException(reservationId);
-      }
-      return existingSale;
-    }
-
-    // 4. Transaction para confirmar
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      // Buscar reserva com lock pessimista
+      const reservation = await queryRunner.manager.findOne(Reservation, {
+        where: { id: reservationId, userId },
+        relations: ['session'],
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!reservation) {
+        throw new ReservationNotFoundException(reservationId);
+      }
+
+      if (new Date() > reservation.expiresAt) {
+        throw new ReservationExpiredException(reservationId);
+      }
+
+      // Se já estiver confirmada, retorna venda existente
+      if (reservation.status === ReservationStatus.CONFIRMED) {
+        const existingSale = await queryRunner.manager.findOne(Sale, {
+          where: { reservationId },
+        });
+        if (existingSale) {
+          await this.redisLock.setCache(idempotencyKey, existingSale, 300);
+          await queryRunner.commitTransaction();
+          return existingSale;
+        }
+      }
+
       // Atualizar status dos assentos para SOLD
       await queryRunner.manager.update(
         Seat,
@@ -226,7 +244,23 @@ export class BookingsService {
         totalAmountCents: session.priceCents * reservation.seatIds.length,
       });
 
-      const savedSale = await queryRunner.manager.save(sale);
+      let savedSale: Sale;
+      try {
+        savedSale = await queryRunner.manager.save(sale);
+      } catch (error) {
+        // Tratamento de violação de unicidade (confirmação duplicada)
+        if (error?.code === '23505') {
+          const existingSale = await queryRunner.manager.findOne(Sale, {
+            where: { reservationId },
+          });
+          if (existingSale) {
+            await queryRunner.commitTransaction();
+            await this.redisLock.setCache(idempotencyKey, existingSale, 300);
+            return existingSale;
+          }
+        }
+        throw error;
+      }
 
       await queryRunner.commitTransaction();
 
@@ -239,6 +273,7 @@ export class BookingsService {
         totalAmountCents: savedSale.totalAmountCents,
       });
 
+      await this.redisLock.setCache(idempotencyKey, savedSale, 300);
       this.logger.log(`Payment confirmed: ${savedSale.id}`);
 
       return savedSale;
@@ -247,6 +282,7 @@ export class BookingsService {
       throw error;
     } finally {
       await queryRunner.release();
+      await this.redisLock.release(lockKey, lock);
     }
   }
 

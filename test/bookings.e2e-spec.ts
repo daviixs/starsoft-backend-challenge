@@ -3,11 +3,28 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
+import { Sale } from '../src/modules/sessions/entities/sale.entity';
 
 describe('Bookings E2E Tests', () => {
   let app: INestApplication;
   let sessionId: string;
   let dataSource: DataSource;
+  const createSession = async (
+    name = 'Test Movie',
+    totalSeats = 4,
+  ): Promise<string> => {
+    const response = await request(app.getHttpServer())
+      .post('/api/sessions')
+      .send({
+        movieName: name,
+        roomNumber: Math.floor(Math.random() * 1000),
+        startsAt: new Date(Date.now() + 86400000).toISOString(),
+        priceCents: 2500,
+        totalSeats,
+      })
+      .expect(201);
+    return response.body.id;
+  };
 
   beforeAll(async () => {
     // Criar módulo de teste
@@ -261,6 +278,89 @@ describe('Bookings E2E Tests', () => {
       expect(historyResponse.body).toHaveProperty('totalPurchases');
       expect(historyResponse.body.totalPurchases).toBeGreaterThanOrEqual(1);
       expect(historyResponse.body.purchases).toBeInstanceOf(Array);
+    });
+  });
+
+  describe('Concurrency scenarios', () => {
+    it('should not deadlock when reserving overlapping seats in different orders', async () => {
+      const sessionForDeadlock = await createSession(
+        'Deadlock Movie',
+        4, // generates A1, B1, C1, D1
+      );
+
+      const payloadA = {
+        userId: 'deadlock-user-a',
+        sessionId: sessionForDeadlock,
+        seatNumbers: ['A1', 'B1'],
+      };
+
+      const payloadB = {
+        userId: 'deadlock-user-b',
+        sessionId: sessionForDeadlock,
+        seatNumbers: ['B1', 'A1'],
+      };
+
+      const [respA, respB] = await Promise.allSettled([
+        request(app.getHttpServer()).post('/api/bookings/reserve').send(payloadA),
+        request(app.getHttpServer()).post('/api/bookings/reserve').send(payloadB),
+      ]);
+
+      expect(respA.status).toBe('fulfilled');
+      expect(respB.status).toBe('fulfilled');
+
+      const statuses = [
+        respA.status === 'fulfilled' ? respA.value.status : 0,
+        respB.status === 'fulfilled' ? respB.value.status : 0,
+      ];
+
+      expect(statuses).toContain(201);
+      expect(statuses).toContain(409);
+    });
+
+    it('should confirm payment only once under concurrent requests', async () => {
+      const sessionForConfirm = await createSession('Confirm Race Movie', 2);
+
+      const reservationResponse = await request(app.getHttpServer())
+        .post('/api/bookings/reserve')
+        .send({
+          userId: 'confirm-race-user',
+          sessionId: sessionForConfirm,
+          seatNumbers: ['A1'],
+        })
+        .expect(201);
+
+      const reservationId = reservationResponse.body.id;
+
+      const confirmPayload = {
+        reservationId,
+        userId: 'confirm-race-user',
+        idempotencyKey: 'confirm-race-key',
+      };
+
+      const [first, second] = await Promise.all([
+        request(app.getHttpServer())
+          .post('/api/bookings/confirm')
+          .send(confirmPayload),
+        request(app.getHttpServer())
+          .post('/api/bookings/confirm')
+          .send(confirmPayload),
+      ]);
+
+      const allowedStatuses = [200, 201, 409];
+      expect(allowedStatuses).toContain(first.status);
+      expect(allowedStatuses).toContain(second.status);
+
+      const firstSaleId = first.body?.id;
+      const secondSaleId = second.body?.id;
+
+      if (firstSaleId && secondSaleId) {
+        expect(firstSaleId).toBe(secondSaleId);
+      }
+
+      const saleCount = await dataSource
+        .getRepository(Sale)
+        .count({ where: { reservationId } });
+      expect(saleCount).toBe(1);
     });
   });
 });
