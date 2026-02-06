@@ -1,24 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, CanActivate } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 import { Sale } from '../src/modules/sessions/entities/sale.entity';
+import { randomUUID } from 'crypto';
 
 describe('Bookings E2E Tests', () => {
   jest.setTimeout(20000);
   let app: INestApplication;
   let sessionId: string;
   let dataSource: DataSource;
+  const makeUserId = () => randomUUID();
+  class AllowAllGuard implements CanActivate {
+    canActivate() {
+      return true;
+    }
+  }
   const createSession = async (
     name = 'Test Movie',
-    totalSeats = 4,
+    totalSeats = 16,
   ): Promise<string> => {
     const response = await request(app.getHttpServer())
       .post('/api/sessions')
       .send({
         movieName: name,
-        roomNumber: Math.floor(Math.random() * 1000),
+        roomNumber: (Math.floor(Math.random() * 20) % 20) + 1,
         startsAt: new Date(Date.now() + 86400000).toISOString(),
         priceCents: 2500,
         totalSeats,
@@ -35,7 +43,10 @@ describe('Bookings E2E Tests', () => {
     // Criar módulo de teste
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(APP_GUARD)
+      .useClass(AllowAllGuard)
+      .compile();
 
     app = moduleFixture.createNestApplication();
 
@@ -65,7 +76,8 @@ describe('Bookings E2E Tests', () => {
         startsAt: new Date(Date.now() + 86400000).toISOString(),
         priceCents: 2500,
         totalSeats: 16,
-      });
+      })
+      .expect(201);
 
     sessionId = sessionResponse.body.id;
   });
@@ -90,7 +102,7 @@ describe('Bookings E2E Tests', () => {
       const response = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'test-user-1',
+          userId: makeUserId(),
           sessionId,
           seatNumbers: ['A1', 'A2'],
         })
@@ -107,7 +119,7 @@ describe('Bookings E2E Tests', () => {
       const firstResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'test-user-2',
+          userId: makeUserId(),
           sessionId,
           seatNumbers: ['B1'],
         })
@@ -119,7 +131,7 @@ describe('Bookings E2E Tests', () => {
       const conflictResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'test-user-3',
+          userId: makeUserId(),
           sessionId,
           seatNumbers: ['B1'],
         })
@@ -144,7 +156,7 @@ describe('Bookings E2E Tests', () => {
 
     it('should return cached result for duplicate request (idempotency)', async () => {
       const payload = {
-        userId: 'test-user-idempotent',
+        userId: makeUserId(),
         sessionId,
         seatNumbers: ['C1', 'C2'],
       };
@@ -170,11 +182,12 @@ describe('Bookings E2E Tests', () => {
 
   describe('POST /api/bookings/confirm', () => {
     it('should confirm payment successfully', async () => {
+      const userId = makeUserId();
       // Criar reserva
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'test-user-4',
+          userId,
           sessionId,
           seatNumbers: ['D1'],
         })
@@ -187,32 +200,34 @@ describe('Bookings E2E Tests', () => {
         .post('/api/bookings/confirm')
         .send({
           reservationId,
-          userId: 'test-user-4',
+          userId,
         })
         .expect(201);
 
       expect(saleResponse.body).toHaveProperty('id');
       expect(saleResponse.body).toHaveProperty('totalAmountCents');
       expect(saleResponse.body.totalAmountCents).toBe(2500); // 1 assento * 2500
-      expect(saleResponse.body.userId).toBe('test-user-4');
+      expect(saleResponse.body.userId).toBe(userId);
     });
 
     it('should reject confirmation for non-existent reservation', async () => {
+      const userId = makeUserId();
       await request(app.getHttpServer())
         .post('/api/bookings/confirm')
         .send({
           reservationId: '00000000-0000-0000-0000-000000000000',
-          userId: 'test-user-5',
+          userId,
         })
         .expect(404);
     });
 
     it('should reject double confirmation', async () => {
+      const userId = makeUserId();
       // Criar e confirmar reserva
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'test-user-6',
+          userId,
           sessionId,
           seatNumbers: ['E1'],
         })
@@ -225,7 +240,7 @@ describe('Bookings E2E Tests', () => {
         .post('/api/bookings/confirm')
         .send({
           reservationId,
-          userId: 'test-user-6',
+          userId,
         })
         .expect(201);
 
@@ -234,7 +249,7 @@ describe('Bookings E2E Tests', () => {
         .post('/api/bookings/confirm')
         .send({
           reservationId,
-          userId: 'test-user-6',
+          userId,
         });
 
       // Pode ser 201 (idempotente) ou 409 (já confirmado)
@@ -258,7 +273,7 @@ describe('Bookings E2E Tests', () => {
 
   describe('GET /api/bookings/user/:userId', () => {
     it('should return user purchase history', async () => {
-      const userId = 'test-user-history';
+      const userId = makeUserId();
 
       // Criar e confirmar uma compra
       const reservationResponse = await request(app.getHttpServer())
@@ -292,19 +307,16 @@ describe('Bookings E2E Tests', () => {
 
   describe('Concurrency scenarios', () => {
     it('should not deadlock when reserving overlapping seats in different orders', async () => {
-      const sessionForDeadlock = await createSession(
-        'Deadlock Movie',
-        4, // generates A1, B1, C1, D1
-      );
+      const sessionForDeadlock = await createSession('Deadlock Movie', 16);
 
       const payloadA = {
-        userId: 'deadlock-user-a',
+        userId: makeUserId(),
         sessionId: sessionForDeadlock,
         seatNumbers: ['A1', 'B1'],
       };
 
       const payloadB = {
-        userId: 'deadlock-user-b',
+        userId: makeUserId(),
         sessionId: sessionForDeadlock,
         seatNumbers: ['B1', 'A1'],
       };
@@ -327,12 +339,13 @@ describe('Bookings E2E Tests', () => {
     });
 
     it('should confirm payment only once under concurrent requests', async () => {
-      const sessionForConfirm = await createSession('Confirm Race Movie', 2);
+      const sessionForConfirm = await createSession('Confirm Race Movie', 16);
+      const userId = makeUserId();
 
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
-          userId: 'confirm-race-user',
+          userId,
           sessionId: sessionForConfirm,
           seatNumbers: ['A1'],
         })
@@ -342,7 +355,7 @@ describe('Bookings E2E Tests', () => {
 
       const confirmPayload = {
         reservationId,
-        userId: 'confirm-race-user',
+        userId,
         idempotencyKey: 'confirm-race-key',
       };
 
