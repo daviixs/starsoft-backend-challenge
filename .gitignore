@@ -1,2 +1,2 @@
-node_modules\ndist\n.env\n*.log
+node_modules\ndist\n.env\n*.log\n.env.test
 node_modules

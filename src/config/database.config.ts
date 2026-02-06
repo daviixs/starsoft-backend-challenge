@@ -4,6 +4,8 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export const getDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => ({
+  // Keep test DB isolated and reset on boot
+  dropSchema: configService.get('NODE_ENV') === 'test',
   type: 'postgres',
   host: configService.get('DATABASE_HOST', 'localhost'),
   port: configService.get<number>('DATABASE_PORT', 5432),

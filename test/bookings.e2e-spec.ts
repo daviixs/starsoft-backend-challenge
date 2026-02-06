@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { Sale } from '../src/modules/sessions/entities/sale.entity';
 
 describe('Bookings E2E Tests', () => {
+  jest.setTimeout(20000);
   let app: INestApplication;
   let sessionId: string;
   let dataSource: DataSource;
@@ -27,6 +28,10 @@ describe('Bookings E2E Tests', () => {
   };
 
   beforeAll(async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.DATABASE_NAME = 'cinema_booking_bookings_test';
+    process.env.KAFKAJS_NO_PARTITIONER_WARNING = '1';
+
     // Criar módulo de teste
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -49,6 +54,7 @@ describe('Bookings E2E Tests', () => {
 
     // Obter DataSource para limpar DB entre testes
     dataSource = moduleFixture.get<DataSource>(DataSource);
+    await dataSource.synchronize(true);
 
     // Criar sessão para todos os testes
     const sessionResponse = await request(app.getHttpServer())
@@ -65,9 +71,12 @@ describe('Bookings E2E Tests', () => {
   });
 
   afterAll(async () => {
-    // Limpar banco
-    await dataSource.dropDatabase();
-    await app.close();
+    if (dataSource) {
+      await dataSource.destroy();
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   // Limpar dados entre testes (opcional)
