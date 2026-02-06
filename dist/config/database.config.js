@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDatabaseConfig = void 0;
 const getDatabaseConfig = (configService) => ({
+    dropSchema: configService.get('NODE_ENV') === 'test',
     type: 'postgres',
     host: configService.get('DATABASE_HOST', 'localhost'),
     port: configService.get('DATABASE_PORT', 5432),

@@ -47,6 +47,7 @@ __decorate([
     __metadata("design:type", reservation_entity_1.Reservation)
 ], Sale.prototype, "reservation", void 0);
 exports.Sale = Sale = __decorate([
-    (0, typeorm_1.Entity)('sales')
+    (0, typeorm_1.Entity)('sales'),
+    (0, typeorm_1.Unique)(['reservationId'])
 ], Sale);
 //# sourceMappingURL=sale.entity.js.map

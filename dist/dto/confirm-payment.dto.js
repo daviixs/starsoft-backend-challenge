@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class ConfirmPaymentDto {
     reservationId;
+    idempotencyKey;
     userId;
 }
 exports.ConfirmPaymentDto = ConfirmPaymentDto;
@@ -26,6 +27,15 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: 'reservationId não pode ser vazio' }),
     __metadata("design:type", String)
 ], ConfirmPaymentDto.prototype, "reservationId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Chave de idempotência para confirmação (opcional)',
+        required: false,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ message: 'idempotencyKey deve ser uma string' }),
+    __metadata("design:type", String)
+], ConfirmPaymentDto.prototype, "idempotencyKey", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'ID do usuário que fez a reserva (UUID v4)',

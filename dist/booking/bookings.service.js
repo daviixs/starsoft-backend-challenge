@@ -45,6 +45,7 @@ let BookingsService = BookingsService_1 = class BookingsService {
     }
     async reserveSeats(dto) {
         const { userId, sessionId, seatNumbers } = dto;
+        const sortedSeatNumbers = [...seatNumbers].sort();
         const session = await this.sessionRepository.findOne({
             where: { id: sessionId },
         });
@@ -57,9 +58,7 @@ let BookingsService = BookingsService_1 = class BookingsService {
             this.logger.debug(`Returning cached reservation: ${cached.id}`);
             return cached;
         }
-        const lockKeys = seatNumbers
-            .sort()
-            .map((seat) => `seat:lock:${sessionId}:${seat}`);
+        const lockKeys = sortedSeatNumbers.map((seat) => `seat:lock:${sessionId}:${seat}`);
         const locks = await this.redisLock.acquireMultiple(lockKeys, 5000);
         if (!locks) {
             throw new business_exceptions_1.SeatUnavailableException(seatNumbers);
@@ -72,14 +71,15 @@ let BookingsService = BookingsService_1 = class BookingsService {
                 const seats = await queryRunner.manager.find(seat_entity_1.Seat, {
                     where: {
                         sessionId,
-                        seatNumber: (0, typeorm_2.In)(seatNumbers),
+                        seatNumber: (0, typeorm_2.In)(sortedSeatNumbers),
                         status: seat_entity_1.SeatStatus.AVAILABLE,
                     },
+                    order: { seatNumber: 'ASC' },
                     lock: { mode: 'pessimistic_write' },
                 });
-                if (seats.length !== seatNumbers.length) {
+                if (seats.length !== sortedSeatNumbers.length) {
                     const foundSeats = seats.map((s) => s.seatNumber);
-                    const unavailable = seatNumbers.filter((s) => !foundSeats.includes(s));
+                    const unavailable = sortedSeatNumbers.filter((s) => !foundSeats.includes(s));
                     throw new business_exceptions_1.SeatUnavailableException(unavailable);
                 }
                 const expiresAt = new Date(Date.now() + this.RESERVATION_TTL_MS);
@@ -120,30 +120,43 @@ let BookingsService = BookingsService_1 = class BookingsService {
         }
     }
     async confirmPayment(dto) {
-        const { reservationId, userId } = dto;
-        const reservation = await this.reservationRepository.findOne({
-            where: { id: reservationId, userId },
-            relations: ['session'],
-        });
-        if (!reservation) {
-            throw new business_exceptions_1.ReservationNotFoundException(reservationId);
+        const { reservationId, userId, idempotencyKey: providedKey } = dto;
+        const idempotencyKey = providedKey || `confirm:${reservationId}:${userId}`.toLowerCase();
+        const cachedSale = await this.redisLock.getCache(idempotencyKey);
+        if (cachedSale) {
+            this.logger.debug(`Returning cached sale for ${idempotencyKey}`);
+            return cachedSale;
         }
-        if (new Date() > reservation.expiresAt) {
-            throw new business_exceptions_1.ReservationExpiredException(reservationId);
-        }
-        if (reservation.status === reservation_entity_1.ReservationStatus.CONFIRMED) {
-            const existingSale = await this.saleRepository.findOne({
-                where: { reservationId },
-            });
-            if (!existingSale) {
-                throw new business_exceptions_1.ReservationNotFoundException(reservationId);
-            }
-            return existingSale;
+        const lockKey = `reservation:confirm:${reservationId}`;
+        const lock = await this.redisLock.acquire(lockKey, 8000, 5, 50);
+        if (!lock) {
+            throw new common_1.ConflictException('Reservation confirmation in progress');
         }
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
+            const reservation = await queryRunner.manager.findOne(reservation_entity_1.Reservation, {
+                where: { id: reservationId, userId },
+                relations: ['session'],
+                lock: { mode: 'pessimistic_write' },
+            });
+            if (!reservation) {
+                throw new business_exceptions_1.ReservationNotFoundException(reservationId);
+            }
+            if (new Date() > reservation.expiresAt) {
+                throw new business_exceptions_1.ReservationExpiredException(reservationId);
+            }
+            if (reservation.status === reservation_entity_1.ReservationStatus.CONFIRMED) {
+                const existingSale = await queryRunner.manager.findOne(sale_entity_1.Sale, {
+                    where: { reservationId },
+                });
+                if (existingSale) {
+                    await this.redisLock.setCache(idempotencyKey, existingSale, 300);
+                    await queryRunner.commitTransaction();
+                    return existingSale;
+                }
+            }
             await queryRunner.manager.update(seat_entity_1.Seat, { id: (0, typeorm_2.In)(reservation.seatIds) }, { status: seat_entity_1.SeatStatus.SOLD, reservedUntil: undefined });
             await queryRunner.manager.update(reservation_entity_1.Reservation, { id: reservationId }, { status: reservation_entity_1.ReservationStatus.CONFIRMED });
             const session = await queryRunner.manager.findOne(session_entity_1.Session, {
@@ -157,7 +170,23 @@ let BookingsService = BookingsService_1 = class BookingsService {
                 userId,
                 totalAmountCents: session.priceCents * reservation.seatIds.length,
             });
-            const savedSale = await queryRunner.manager.save(sale);
+            let savedSale;
+            try {
+                savedSale = await queryRunner.manager.save(sale);
+            }
+            catch (error) {
+                if (error?.code === '23505') {
+                    const existingSale = await queryRunner.manager.findOne(sale_entity_1.Sale, {
+                        where: { reservationId },
+                    });
+                    if (existingSale) {
+                        await queryRunner.commitTransaction();
+                        await this.redisLock.setCache(idempotencyKey, existingSale, 300);
+                        return existingSale;
+                    }
+                }
+                throw error;
+            }
             await queryRunner.commitTransaction();
             await this.kafkaProducer.publish('booking.confirmed', {
                 saleId: savedSale.id,
@@ -166,6 +195,7 @@ let BookingsService = BookingsService_1 = class BookingsService {
                 sessionId: reservation.sessionId,
                 totalAmountCents: savedSale.totalAmountCents,
             });
+            await this.redisLock.setCache(idempotencyKey, savedSale, 300);
             this.logger.log(`Payment confirmed: ${savedSale.id}`);
             return savedSale;
         }
@@ -175,6 +205,7 @@ let BookingsService = BookingsService_1 = class BookingsService {
         }
         finally {
             await queryRunner.release();
+            await this.redisLock.release(lockKey, lock);
         }
     }
     async getUserPurchases(userId) {
