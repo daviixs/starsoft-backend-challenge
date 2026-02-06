@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: cinema-postgres
@@ -17,25 +18,37 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - cinema-network
 
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: cinema-redis
     ports:
       - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - cinema-network
 
+  # Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: cinema-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - cinema-network
 
+  # Kafka
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: cinema-kafka
@@ -46,10 +59,13 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
     healthcheck:
       test:
         [
@@ -61,7 +77,10 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    networks:
+      - cinema-network
 
+  # API Instance 1
   app:
     build:
       context: .
@@ -69,6 +88,7 @@ services:
     container_name: cinema-app-1
     environment:
       NODE_ENV: production
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: cinema
@@ -76,7 +96,9 @@ services:
       DATABASE_NAME: cinema_booking
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: cinema-app-1
+      KAFKA_GROUP_ID: cinema-booking-group
     ports:
       - '3000:3000'
     depends_on:
@@ -86,7 +108,12 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - cinema-network
 
+  # API Instance 2
   app-2:
     build:
       context: .
@@ -94,6 +121,7 @@ services:
     container_name: cinema-app-2
     environment:
       NODE_ENV: production
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: cinema
@@ -101,7 +129,9 @@ services:
       DATABASE_NAME: cinema_booking
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: cinema-app-2
+      KAFKA_GROUP_ID: cinema-booking-group
     ports:
       - '3001:3000'
     depends_on:
@@ -111,6 +141,15 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - cinema-network
 
 volumes:
   postgres_data:
+  redis_data:
+
+networks:
+  cinema-network:
+    driver: bridge
