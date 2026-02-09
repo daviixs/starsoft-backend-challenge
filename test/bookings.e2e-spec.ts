@@ -322,8 +322,12 @@ describe('Bookings E2E Tests', () => {
       };
 
       const [respA, respB] = await Promise.allSettled([
-        request(app.getHttpServer()).post('/api/bookings/reserve').send(payloadA),
-        request(app.getHttpServer()).post('/api/bookings/reserve').send(payloadB),
+        request(app.getHttpServer())
+          .post('/api/bookings/reserve')
+          .send(payloadA),
+        request(app.getHttpServer())
+          .post('/api/bookings/reserve')
+          .send(payloadB),
       ]);
 
       expect(respA.status).toBe('fulfilled');
