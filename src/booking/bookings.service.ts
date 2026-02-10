@@ -22,7 +22,7 @@ import {
 @Injectable()
 export class BookingsService {
   private readonly logger = new Logger(BookingsService.name);
-  private readonly RESERVATION_TTL_MS = 30000; // 30 segundos
+  private readonly RESERVATION_TTL_MS = 30000;
 
   constructor(
     @InjectRepository(Reservation)
@@ -38,14 +38,10 @@ export class BookingsService {
     private kafkaProducer: KafkaProducerService,
   ) {}
 
-  /**
-   * RESERVA DE ASSENTOS (com locks distribuídos)
-   */
   async reserveSeats(dto: ReserveSeatsDto): Promise<Reservation> {
     const { userId, sessionId, seatNumbers } = dto;
     const sortedSeatNumbers = [...seatNumbers].sort();
 
-    // 1. Verificar se sessão existe
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
     });
@@ -53,21 +49,18 @@ export class BookingsService {
       throw new SessionNotFoundException(sessionId);
     }
 
-    // 2. Gerar chave de idempotência
     const idempotencyKey = this.generateIdempotencyKey(
       userId,
       sessionId,
       seatNumbers,
     );
 
-    // 3. Verificar cache (evita requisições duplicadas)
     const cached = await this.redisLock.getCache<Reservation>(idempotencyKey);
     if (cached) {
       this.logger.debug(`Returning cached reservation: ${cached.id}`);
       return cached;
     }
 
-    // 4. Adquirir locks para os assentos (ordem alfabética = anti-deadlock)
     const lockKeys = sortedSeatNumbers.map(
       (seat) => `seat:lock:${sessionId}:${seat}`,
     );
@@ -79,13 +72,11 @@ export class BookingsService {
     }
 
     try {
-      // 5. Transaction no PostgreSQL
       const queryRunner = this.dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       try {
-        // 6. SELECT FOR UPDATE (lock pessimista)
         const seats = await queryRunner.manager.find(Seat, {
           where: {
             sessionId,
@@ -96,7 +87,6 @@ export class BookingsService {
           lock: { mode: 'pessimistic_write' },
         });
 
-        // Verificar se todos os assentos estão disponíveis
         if (seats.length !== sortedSeatNumbers.length) {
           const foundSeats = seats.map((s) => s.seatNumber);
           const unavailable = sortedSeatNumbers.filter(
@@ -105,10 +95,8 @@ export class BookingsService {
           throw new SeatUnavailableException(unavailable);
         }
 
-        // 7. Calcular expiração
         const expiresAt = new Date(Date.now() + this.RESERVATION_TTL_MS);
 
-        // 8. Atualizar status dos assentos
         await queryRunner.manager.update(
           Seat,
           { id: In(seats.map((s) => s.id)) },
@@ -118,7 +106,6 @@ export class BookingsService {
           },
         );
 
-        // 9. Criar reserva
         const reservation = queryRunner.manager.create(Reservation, {
           userId,
           sessionId,
@@ -131,7 +118,6 @@ export class BookingsService {
 
         await queryRunner.commitTransaction();
 
-        // 10. Publicar evento no Kafka
         await this.kafkaProducer.publish('booking.reserved', {
           reservationId: savedReservation.id,
           userId,
@@ -140,7 +126,6 @@ export class BookingsService {
           expiresAt: expiresAt.toISOString(),
         });
 
-        // 11. Cachear resultado (30 segundos)
         await this.redisLock.setCache(idempotencyKey, savedReservation, 30);
 
         this.logger.log(
@@ -155,27 +140,21 @@ export class BookingsService {
         await queryRunner.release();
       }
     } finally {
-      // 12. Liberar locks
       await this.redisLock.releaseMultiple(locks);
     }
   }
 
-  /**
-   * CONFIRMAÇÃO DE PAGAMENTO
-   */
   async confirmPayment(dto: ConfirmPaymentDto): Promise<Sale> {
     const { reservationId, userId, idempotencyKey: providedKey } = dto;
     const idempotencyKey =
       providedKey || `confirm:${reservationId}:${userId}`.toLowerCase();
 
-    // Retorna do cache se já processado
     const cachedSale = await this.redisLock.getCache<Sale>(idempotencyKey);
     if (cachedSale) {
       this.logger.debug(`Returning cached sale for ${idempotencyKey}`);
       return cachedSale;
     }
 
-    // Lock distribuído para confirmação
     const lockKey = `reservation:confirm:${reservationId}`;
     const lock = await this.redisLock.acquire(lockKey, 8000, 5, 50);
     if (!lock) {
@@ -187,7 +166,6 @@ export class BookingsService {
     await queryRunner.startTransaction();
 
     try {
-      // Buscar reserva com lock pessimista
       const reservation = await queryRunner.manager.findOne(Reservation, {
         where: { id: reservationId, userId },
         lock: { mode: 'pessimistic_write' },
@@ -201,7 +179,6 @@ export class BookingsService {
         throw new ReservationExpiredException(reservationId);
       }
 
-      // Se já estiver confirmada, retorna venda existente
       if (reservation.status === ReservationStatus.CONFIRMED) {
         const existingSale = await queryRunner.manager.findOne(Sale, {
           where: { reservationId },
@@ -213,21 +190,18 @@ export class BookingsService {
         }
       }
 
-      // Atualizar status dos assentos para SOLD
       await queryRunner.manager.update(
         Seat,
         { id: In(reservation.seatIds) },
         { status: SeatStatus.SOLD, reservedUntil: undefined },
       );
 
-      // Atualizar status da reserva
       await queryRunner.manager.update(
         Reservation,
         { id: reservationId },
         { status: ReservationStatus.CONFIRMED },
       );
 
-      // Buscar sessão para calcular total
       const session = await queryRunner.manager.findOne(Session, {
         where: { id: reservation.sessionId },
       });
@@ -236,7 +210,6 @@ export class BookingsService {
         throw new SessionNotFoundException(reservation.sessionId);
       }
 
-      // Criar venda
       const sale = queryRunner.manager.create(Sale, {
         reservationId,
         userId,
@@ -247,7 +220,6 @@ export class BookingsService {
       try {
         savedSale = await queryRunner.manager.save(sale);
       } catch (error) {
-        // Tratamento de violação de unicidade (confirmação duplicada)
         if (error?.code === '23505') {
           const existingSale = await queryRunner.manager.findOne(Sale, {
             where: { reservationId },
@@ -263,7 +235,6 @@ export class BookingsService {
 
       await queryRunner.commitTransaction();
 
-      // Publicar evento
       await this.kafkaProducer.publish('booking.confirmed', {
         saleId: savedSale.id,
         reservationId,
@@ -285,9 +256,6 @@ export class BookingsService {
     }
   }
 
-  /**
-   * Histórico de compras do usuário
-   */
   async getUserPurchases(userId: string): Promise<Sale[]> {
     return this.saleRepository.find({
       where: { userId },
@@ -296,9 +264,6 @@ export class BookingsService {
     });
   }
 
-  /**
-   * Gera chave de idempotência
-   */
   private generateIdempotencyKey(
     userId: string,
     sessionId: string,
@@ -307,9 +272,6 @@ export class BookingsService {
     return `reserve:${userId}:${sessionId}:${seatNumbers.sort().join(',')}`;
   }
 
-  /**
-   * Buscar uma reserva específica
-   */
   async getReservation(id: string): Promise<Reservation> {
     const reservation = await this.reservationRepository.findOne({
       where: { id },

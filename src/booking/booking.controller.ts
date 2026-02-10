@@ -21,10 +21,6 @@ export class BookingsController {
 
   constructor(private readonly bookingsService: BookingsService) {}
 
-  /**
-   * POST /bookings/reserve
-   * Reserva assentos com proteção contra concorrência
-   */
   @Post('reserve')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ strict: { ttl: 60000, limit: 5 } })
@@ -53,10 +49,6 @@ export class BookingsController {
     };
   }
 
-  /**
-   * POST /bookings/confirm
-   * Confirma pagamento e converte reserva em venda
-   */
   @Post('confirm')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ strict: { ttl: 60000, limit: 5 } })
@@ -84,10 +76,6 @@ export class BookingsController {
     };
   }
 
-  /**
-   * GET /bookings/user/:userId
-   * Histórico de compras do usuário
-   */
   @Get('user/:userId')
   @ApiOperation({ summary: 'Buscar histórico de compras do usuário' })
   @ApiParam({ name: 'userId', description: 'ID do usuário (UUID)' })
@@ -111,10 +99,6 @@ export class BookingsController {
     };
   }
 
-  /**
-   * GET /bookings/reservation/:id
-   * Consultar status de uma reserva
-   */
   @Get('reservation/:id')
   @ApiOperation({ summary: 'Consultar status de uma reserva' })
   @ApiParam({ name: 'id', description: 'ID da reserva (UUID)' })

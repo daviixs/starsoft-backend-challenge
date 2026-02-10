@@ -12,22 +12,22 @@ import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
-    // Configuração global
+    
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
     }),
 
-    // TypeORM
+    
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: getDatabaseConfig,
     }),
 
-    // Schedule (Cron jobs)
+    
     ScheduleModule.forRoot(),
 
-    // Rate Limiting - 60 requests por minuto por IP
+    
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -43,14 +43,14 @@ import { HealthModule } from './health/health.module';
       ],
     }),
 
-    // Módulos compartilhados
+    
     SharedModule,
 
-    // Módulos de negócio
+    
     SessionsModule,
     BookingsModule,
 
-    // Health check
+    
     HealthModule,
   ],
   providers:

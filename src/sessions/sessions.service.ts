@@ -18,16 +18,16 @@ export class SessionsService {
     private dataSource: DataSource,
   ) {}
 
-  /**
-   * Cria uma sessão com assentos
-   */
+  
+
+
   async createSession(dto: CreateSessionDto): Promise<Session> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // Criar sessão
+      
       const session = queryRunner.manager.create(Session, {
         movieName: dto.movieName,
         roomNumber: dto.roomNumber,
@@ -37,7 +37,7 @@ export class SessionsService {
 
       const savedSession = await queryRunner.manager.save(session);
 
-      // Gerar assentos (formato: A1, A2, ..., B1, B2, ...)
+      
       const seats = this.generateSeats(savedSession.id, dto.totalSeats);
       await queryRunner.manager.save(Seat, seats);
 
@@ -57,9 +57,9 @@ export class SessionsService {
     }
   }
 
-  /**
-   * Busca disponibilidade em tempo real
-   */
+  
+
+
   async getAvailability(sessionId: string): Promise<{
     session: Session;
     availableSeats: string[];
@@ -92,18 +92,18 @@ export class SessionsService {
     };
   }
 
-  /**
-   * Lista todas as sessões
-   */
+  
+
+
   async findAll(): Promise<Session[]> {
     return this.sessionRepository.find({
       order: { startsAt: 'ASC' },
     });
   }
 
-  /**
-   * Gera assentos (A1-A8, B1-B8, ...)
-   */
+  
+
+
   private generateSeats(sessionId: string, total: number): Seat[] {
     const seats: Seat[] = [];
     const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];

@@ -7,7 +7,6 @@ import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 
 async function bootstrap() {
-  // Logger estruturado
   const logger = WinstonModule.createLogger({
     transports: [
       new winston.transports.Console({
@@ -43,30 +42,27 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  // Validação automática de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove propriedades não definidas no DTO
-      forbidNonWhitelisted: true, // Retorna erro se propriedade extra
-      transform: true, // Transforma tipos automaticamente
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
     }),
   );
 
-  // Prefixo global
   app.setGlobalPrefix('api');
 
-  // Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Cinema Booking API')
     .setDescription(
-      'API para reserva de assentos de cinema com proteção contra concorrência, locks distribuídos (Redis) e mensageria (Kafka).',
+      'API para reserva de assentos de cinema com protecao contra concorrencia, locks distribuidos (Redis) e mensageria (Kafka).',
     )
     .setVersion('1.0')
-    .addTag('Sessions', 'Gerenciamento de sessões de cinema')
-    .addTag('Bookings', 'Reserva e confirmação de assentos')
+    .addTag('Sessions', 'Gerenciamento de sessoes de cinema')
+    .addTag('Bookings', 'Reserva e confirmacao de assentos')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

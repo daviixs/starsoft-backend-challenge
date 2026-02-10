@@ -15,13 +15,13 @@ export class RedisLockService implements OnModuleInit {
     this.logger.log('Redis client initialized');
   }
 
-  /**
-   * Tenta adquirir um lock distribuído
-   * @param key - Chave única do lock
-   * @param ttlMs - Tempo de vida do lock em milissegundos
-   * @param retries - Número de tentativas
-   * @param retryDelayMs - Delay entre tentativas
-   */
+  
+
+
+
+
+
+
   async acquire(
     key: string,
     ttlMs: number = 5000,
@@ -32,7 +32,7 @@ export class RedisLockService implements OnModuleInit {
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        // SET NX (só seta se não existir) + PX (expira em ms)
+        
         const result = await this.redisClient.set(
           key,
           lockValue,
@@ -47,7 +47,7 @@ export class RedisLockService implements OnModuleInit {
         }
 
         if (attempt < retries) {
-          await this.sleep(retryDelayMs * (attempt + 1)); // Backoff exponencial
+          await this.sleep(retryDelayMs * (attempt + 1)); 
         }
       } catch (error) {
         this.logger.error(`Error acquiring lock ${key}:`, error);
@@ -58,12 +58,12 @@ export class RedisLockService implements OnModuleInit {
     return null;
   }
 
-  /**
-   * Libera um lock específico
-   */
+  
+
+
   async release(key: string, lockValue: string): Promise<boolean> {
     try {
-      // Lua script para garantir que só liberamos nosso próprio lock
+      
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("del", KEYS[1])
@@ -86,14 +86,14 @@ export class RedisLockService implements OnModuleInit {
     }
   }
 
-  /**
-   * Adquire múltiplos locks em ordem (anti-deadlock)
-   */
+  
+
+
   async acquireMultiple(
     keys: string[],
     ttlMs: number = 5000,
   ): Promise<Map<string, string> | null> {
-    const sortedKeys = [...keys].sort(); // Ordem alfabética previne deadlock
+    const sortedKeys = [...keys].sort(); 
     const acquiredLocks = new Map<string, string>();
 
     try {
@@ -101,7 +101,7 @@ export class RedisLockService implements OnModuleInit {
         const lockValue = await this.acquire(key, ttlMs);
 
         if (!lockValue) {
-          // Falhou, libera todos já adquiridos
+          
           await this.releaseMultiple(acquiredLocks);
           return null;
         }
@@ -116,9 +116,9 @@ export class RedisLockService implements OnModuleInit {
     }
   }
 
-  /**
-   * Libera múltiplos locks
-   */
+  
+
+
   async releaseMultiple(locks: Map<string, string>): Promise<void> {
     const promises = Array.from(locks.entries()).map(([key, value]) =>
       this.release(key, value),
@@ -127,9 +127,9 @@ export class RedisLockService implements OnModuleInit {
     await Promise.allSettled(promises);
   }
 
-  /**
-   * Cache simples com TTL
-   */
+  
+
+
   async setCache(key: string, value: any, ttlSeconds: number): Promise<void> {
     await this.redisClient.setex(key, ttlSeconds, JSON.stringify(value));
   }

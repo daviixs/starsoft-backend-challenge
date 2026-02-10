@@ -28,9 +28,6 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     await this.producer.disconnect();
   }
 
-  /**
-   * Publica um evento no Kafka
-   */
   async publish(topic: string, message: any, key?: string): Promise<void> {
     try {
       const record: ProducerRecord = {
@@ -55,9 +52,6 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Publica múltiplas mensagens em batch
-   */
   async publishBatch(topic: string, messages: any[]): Promise<void> {
     try {
       const record: ProducerRecord = {

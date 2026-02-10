@@ -11,7 +11,7 @@ SESSION_ID="$1"
 SEAT_NUMBER="A1"
 BASE_URL="http://localhost:3000/api"
 
-# Generates UUID on Linux/macOS/Windows-Git-Bash without hard dependency on uuidgen.
+
 make_uuid() {
   if command -v uuidgen >/dev/null 2>&1; then
     uuidgen | tr 'A-Z' 'a-z'
@@ -28,7 +28,7 @@ make_uuid() {
     return
   fi
 
-  # Last resort pseudo UUID (keeps format for validation)
+
   printf '%08x-%04x-%04x-%04x-%012x\n' "$RANDOM$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM$RANDOM$RANDOM"
 }
 

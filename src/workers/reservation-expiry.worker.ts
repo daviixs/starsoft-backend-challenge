@@ -25,7 +25,7 @@ export class ReservationExpiryWorker implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Subscrever ao tópico de reservas criadas
+    
     await this.kafkaConsumer.subscribe(
       'booking.reserved',
       'expiry-worker-group',
@@ -35,16 +35,16 @@ export class ReservationExpiryWorker implements OnModuleInit {
     this.logger.log('Reservation expiry worker initialized');
   }
 
-  /**
-   * Cron Job: Roda a cada 10 segundos
-   * Procura e expira reservas vencidas
-   */
+  
+
+
+
   @Cron(CronExpression.EVERY_10_SECONDS)
   async checkExpiredReservations() {
     this.logger.debug('Running expiry check...');
 
     try {
-      // Buscar reservas pendentes e expiradas
+      
       const expired = await this.reservationRepository.find({
         where: {
           status: ReservationStatus.PENDING,
@@ -59,7 +59,7 @@ export class ReservationExpiryWorker implements OnModuleInit {
 
       this.logger.log(`Found ${expired.length} expired reservations`);
 
-      // Processar cada reserva expirada
+      
       for (const reservation of expired) {
         await this.expireReservation(reservation);
       }
@@ -70,16 +70,16 @@ export class ReservationExpiryWorker implements OnModuleInit {
     }
   }
 
-  /**
-   * Expira uma reserva específica
-   */
+  
+
+
   private async expireReservation(reservation: Reservation): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // 1. Liberar assentos
+      
       await queryRunner.manager.update(
         Seat,
         { id: In(reservation.seatIds) },
@@ -89,7 +89,7 @@ export class ReservationExpiryWorker implements OnModuleInit {
         },
       );
 
-      // 2. Marcar reserva como expirada
+      
       await queryRunner.manager.update(
         Reservation,
         { id: reservation.id },
@@ -98,7 +98,7 @@ export class ReservationExpiryWorker implements OnModuleInit {
 
       await queryRunner.commitTransaction();
 
-      // 3. Publicar evento
+      
       await this.kafkaProducer.publish('booking.expired', {
         reservationId: reservation.id,
         userId: reservation.userId,
@@ -120,22 +120,22 @@ export class ReservationExpiryWorker implements OnModuleInit {
     }
   }
 
-  /**
-   * Handler de evento Kafka: reserva criada
-   * Agenda expiração
-   */
+  
+
+
+
   private async handleReservationCreated(data: any): Promise<void> {
     this.logger.debug(
       `Received reservation created event: ${data.reservationId}`,
     );
 
-    // Calcular delay até expiração
+    
     const expiresAt = new Date(data.expiresAt);
     const now = new Date();
     const delayMs = expiresAt.getTime() - now.getTime();
 
     if (delayMs > 0) {
-      // Agendar verificação após expiração
+      
       setTimeout(async () => {
         this.logger.debug(
           `Checking reservation ${data.reservationId} for expiration`,
@@ -152,13 +152,13 @@ export class ReservationExpiryWorker implements OnModuleInit {
         ) {
           await this.expireReservation(reservation);
         }
-      }, delayMs + 1000); // +1s de margem
+      }, delayMs + 1000); 
     }
   }
 
-  /**
-   * Método manual para forçar expiração (útil para testes)
-   */
+  
+
+
   async forceExpireReservation(reservationId: string): Promise<void> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId },

@@ -18,6 +18,9 @@
 - [Diagramas da Solução](#-diagramas-da-solução)
 - [Tecnologias Escolhidas](#-tecnologias-escolhidas)
 - [Como Executar](#-como-executar)
+  - [Via Docker (Produção)](#51-via-docker-produção)
+  - [Via npm run start:dev (Desenvolvimento)](#52-via-npm-run-startdev-desenvolvimento-local)
+- [Documentação da API (Swagger)](#-documentação-da-api-swaggeropenapi)
 - [Endpoints da API](#-endpoints-da-api)
 - [Estratégias de Concorrência](#-estratégias-de-concorrência)
   - [Solução para Race Conditions](#91-solução-para-race-conditions-condição-de-corrida)
@@ -26,12 +29,13 @@
 - [Arquitetura Detalhada](#-arquitetura-detalhada)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Decisões Técnicas](#-decisões-técnicas)
+- [Rate Limiting](#-rate-limiting)
 - [Limitações Conhecidas](#-limitações-conhecidas)
-- [Melhorias Futuras](#-melhorias-futuras)
 - [Testes](#-testes)
+  - [Testes Unitários](#testes-unitários)
+  - [Testes de Integração e Concorrência](#testes-de-integraçãoconcorrência)
+  - [Scripts de Teste](#scripts-de-teste)
 - [Troubleshooting](#-troubleshooting)
-- [Contribuindo](#-contribuindo)
-- [Licença](#-licença)
 - [Autor](#-autor)
 
 ---
@@ -193,31 +197,57 @@ flowchart LR
 
 ## 🚀 Como Executar
 
-### 5.1 Pré-requisitos
+Existem **duas formas** de rodar o projeto:
 
-| Ferramenta                   | Versão Mínima |
-| :--------------------------- | :------------ |
-| Docker                       | 20+           |
-| Docker Compose               | 2+            |
-| Node.js _(apenas dev local)_ | 18+           |
-| Git                          | 2+            |
+| Método                      | Ideal Para                     | Precisa criar `.env`? |   Instâncias da API    |
+| :-------------------------- | :----------------------------- | :-------------------: | :--------------------: |
+| **Via Docker**              | Simular produção, testes E2E   |          ❌           | 2 (portas 3000 e 3001) |
+| **Via `npm run start:dev`** | Desenvolvimento com hot-reload |      ✅ **Sim**       |     1 (porta 3000)     |
 
-### 5.2 Instalação
+### Pré-requisitos
+
+| Ferramenta     | Versão Mínima         | Necessário Para       |
+| :------------- | :-------------------- | :-------------------- |
+| Git            | 2+                    | Ambos                 |
+| Docker         | 20+                   | Docker                |
+| Docker Compose | 2+                    | Docker                |
+| Node.js        | 18+ (recomendado 20+) | Desenvolvimento local |
+| npm            | 9+                    | Desenvolvimento local |
+
+> **📝 Sobre o arquivo `.env`:**
+>
+> - **Via Docker:** Não precisa criar `.env` — as variáveis estão no `docker-compose.yml`
+> - **Via `npm run start:dev`:** É **obrigatório** criar o arquivo `.env` na raiz do projeto (veja [Passo 4 da seção 5.2](#52-via-npm-run-startdev-desenvolvimento-local))
+
+---
+
+### 5.1 Via Docker (Produção)
+
+Esta opção sobe **toda a infraestrutura** (PostgreSQL, Redis, Kafka, Zookeeper) e **2 instâncias da API** (portas 3000 e 3001) com um único comando.
+
+**Passo 1 — Clonar o repositório:**
 
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/starsoft-backend-challenge.git
+git clone https://github.com/daviixs/starsoft-backend-challenge.git
 cd starsoft-backend-challenge
+```
 
-# Subir todos os serviços (PostgreSQL, Redis, Kafka, 2x API)
+**Passo 2 — Subir todos os serviços:**
+
+```bash
 docker-compose up --build -d
 ```
 
-> ⏱ A primeira build pode levar ~2 minutos. Aguarde os health checks passarem.
+> ⏱ A primeira build pode levar ~2 minutos. O Docker Compose aguarda os health checks de PostgreSQL, Redis e Kafka antes de iniciar as instâncias da API.
 
-### 5.3 Verificar Saúde
+> ⚠️ **Não é necessário criar arquivo `.env`** ao rodar via Docker — todas as variáveis de ambiente estão configuradas no `docker-compose.yml`.
+
+**Passo 3 — Verificar que tudo está rodando:**
 
 ```bash
+# Ver status dos containers
+docker-compose ps
+
 # Health check completo (DB + Redis)
 curl http://localhost:3000/api/health
 ```
@@ -234,16 +264,116 @@ curl http://localhost:3000/api/health
 }
 ```
 
-### 5.4 Popular Dados Iniciais
+**Passo 4 — Popular dados iniciais:**
 
 ```bash
-# Cria uma sessão de cinema com 24 assentos
 bash scripts/seed-data.sh
 ```
 
-### 5.5 Swagger / Documentação Interativa
+**Passo 5 — Acessar a API:**
 
-Acesse a documentação interativa da API:
+| Recurso           | URL                                |
+| :---------------- | :--------------------------------- |
+| API (Instância 1) | `http://localhost:3000/api`        |
+| API (Instância 2) | `http://localhost:3001/api`        |
+| Swagger Docs      | `http://localhost:3000/api/docs`   |
+| Health Check      | `http://localhost:3000/api/health` |
+
+**Parar tudo:**
+
+```bash
+docker-compose down       # Para os containers (mantém dados)
+docker-compose down -v    # Para os containers e apaga volumes (reset completo)
+```
+
+---
+
+### 5.2 Via `npm run start:dev` (Desenvolvimento Local)
+
+Esta opção roda a API localmente com **hot-reload** (reinicia automaticamente a cada alteração de código). Você ainda precisa de PostgreSQL, Redis e Kafka rodando — o jeito mais fácil é subi-los via Docker.
+
+**Passo 1 — Clonar o repositório:**
+
+```bash
+git clone https://github.com/daviixs/starsoft-backend-challenge.git
+cd starsoft-backend-challenge
+```
+
+**Passo 2 — Instalar dependências:**
+
+```bash
+npm install
+```
+
+**Passo 3 — Subir apenas a infraestrutura (banco, cache, mensageria):**
+
+```bash
+docker-compose up -d postgres redis zookeeper kafka
+```
+
+> Isso sobe **apenas** PostgreSQL, Redis, Zookeeper e Kafka. A API **não** sobe no Docker — você vai rodá-la localmente.
+
+**Passo 4 — Criar arquivo `.env` (obrigatório para dev local):**
+
+> ⚠️ **Importante:** Ao rodar localmente com `npm run start:dev`, você **PRECISA** criar o arquivo `.env` na raiz do projeto.
+
+Crie um arquivo chamado `.env` na raiz (mesmo nível do `package.json`):
+
+```bash
+NODE_ENV=development
+PORT=3000
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=cinema
+DATABASE_PASSWORD=cinema123
+DATABASE_NAME=cinema_booking
+REDIS_HOST=localhost
+REDIS_PORT=6379
+KAFKA_BROKERS=localhost:9092
+KAFKA_CLIENT_ID=cinema-app-dev
+KAFKA_GROUP_ID=cinema-booking-group
+```
+
+Ou copie o arquivo de exemplo (se existir):
+
+```bash
+cp .env.example .env
+```
+
+**Passo 5 — Iniciar a API em modo desenvolvimento:**
+
+```bash
+npm run start:dev
+```
+
+Você verá no terminal:
+
+```
+Application is running on: http://localhost:3000/api
+Swagger docs: http://localhost:3000/api/docs
+Health check: http://localhost:3000/api/health
+```
+
+> A cada alteração em qualquer arquivo `.ts` dentro de `src/`, o NestJS recompila e reinicia automaticamente.
+
+**Passo 6 — Verificar saúde e popular dados:**
+
+```bash
+curl http://localhost:3000/api/health
+bash scripts/seed-data.sh
+```
+
+| Recurso      | URL                                |
+| :----------- | :--------------------------------- |
+| API          | `http://localhost:3000/api`        |
+| Swagger Docs | `http://localhost:3000/api/docs`   |
+| Health Check | `http://localhost:3000/api/health` |
+
+---
+
+## 📖 Documentação da API (Swagger/OpenAPI)
+
+A API possui documentação interativa gerada automaticamente pelo **Swagger/OpenAPI**, acessível em `http://localhost:3000/api/docs`. O Swagger é configurado diretamente no `main.ts` utilizando o `@nestjs/swagger`, onde definimos título, descrição e tags que organizam os endpoints por domínio (**Sessions** e **Bookings**). Cada rota da API é decorada com `@ApiOperation`, `@ApiResponse` e `@ApiParam`, o que garante que a documentação reflita exatamente o comportamento real do código — incluindo os códigos HTTP possíveis (201, 404, 409, 410, 429) e a descrição de cada cenário. Os DTOs utilizam decorators do `class-validator` (como `@IsUUID`, `@IsArray`, `@Matches`) que são automaticamente expostos no schema do Swagger, permitindo que qualquer desenvolvedor visualize as validações exigidas por cada campo sem precisar ler o código-fonte. Além de servir como referência para o time, o Swagger funciona como ferramenta de teste: é possível executar requisições diretamente pela interface web, facilitando a depuração durante o desenvolvimento.
 
 ```
 http://localhost:3000/api/docs
@@ -1159,6 +1289,17 @@ Usar **apenas PostgreSQL** exigiria `SELECT FOR UPDATE` em todas as requisiçõe
 
 ---
 
+## 🛡️ Rate Limiting
+
+O sistema implementa **Rate Limiting** (limitação de taxa de requisições) utilizando o módulo `@nestjs/throttler`, que atua como uma camada de proteção contra abuso e ataques de força bruta. O throttler é registrado como **Guard global** no `AppModule`, o que significa que **todas as rotas da API** são automaticamente protegidas sem necessidade de configuração individual. Definimos dois profiles de throttling: o **default** permite até **60 requisições por minuto** por IP, adequado para rotas de consulta como listar sessões ou verificar disponibilidade; e o **strict** permite apenas **5 requisições por minuto** por IP, aplicado via decorator `@Throttle({ strict: { ttl: 60000, limit: 5 } })` nas rotas críticas de reserva (`POST /bookings/reserve`) e confirmação de pagamento (`POST /bookings/confirm`). Essa diferença é intencional: rotas que modificam estado e consomem recursos (locks Redis, transações PostgreSQL, eventos Kafka) precisam de um limite mais agressivo para evitar que um único IP sobrecarregue o sistema. Quando o limite é excedido, a API retorna `HTTP 429 Too Many Requests`. Atualmente o rate limiting é baseado exclusivamente no endereço IP do cliente; em uma evolução futura, ele poderia ser combinado com autenticação JWT para limitar por `userId`, oferecendo uma granularidade mais justa.
+
+| Profile     | Limite            | Aplicado Em                                        |
+| :---------- | :---------------- | :------------------------------------------------- |
+| **default** | 60 req/min por IP | Todas as rotas (global)                            |
+| **strict**  | 5 req/min por IP  | `POST /bookings/reserve`, `POST /bookings/confirm` |
+
+---
+
 ## ⚠️ Limitações Conhecidas
 
 | Limitação                                         | Motivo                                                                                                                            |
@@ -1172,79 +1313,80 @@ Usar **apenas PostgreSQL** exigiria `SELECT FOR UPDATE` em todas as requisiçõe
 
 ---
 
-## 🔮 Melhorias Futuras
-
-### Curto Prazo (1–2 semanas)
-
-- [ ] Atualizar Dockerfile para Node.js 20+
-- [ ] Implementar autenticação JWT
-- [ ] Aumentar cobertura de testes E2E para > 80%
-- [ ] Configurar CI/CD pipeline (GitHub Actions)
-- [ ] Expandir Swagger com exemplos de response
-
-### Médio Prazo (1 mês)
-
-- [ ] Dead Letter Queue para mensagens Kafka com falha
-- [ ] Observabilidade completa (Prometheus + Grafana)
-- [ ] Kubernetes deployment com Helm Charts
-- [ ] Rate limiting por usuário (não só por IP)
-- [ ] WebSocket para atualização em tempo real de disponibilidade
-
-### Longo Prazo (3–6 meses)
-
-- [ ] Event Sourcing completo (estado derivado de eventos)
-- [ ] CQRS (Command Query Responsibility Segregation)
-- [ ] Multi-tenancy (múltiplas redes de cinema)
-- [ ] Migração para Redlock (Redis multi-node)
-- [ ] Feature flags para rollout gradual
-
----
-
 ## 🧪 Testes
 
 ### Testes Unitários
 
+Os testes unitários do projeto utilizam **Jest** como framework, que já vem integrado ao ecossistema NestJS. A estratégia de testes unitários foca em validar a lógica de negócio de forma isolada, **mockando todas as dependências externas** — ou seja, os acessos ao PostgreSQL (repositórios TypeORM), ao Redis (`RedisLockService`) e ao Kafka (`KafkaProducerService`) são substituídos por mocks que simulam os comportamentos esperados sem precisar de infraestrutura real rodando. Isso garante que os testes sejam rápidos (executam em milissegundos), determinísticos (não dependem de estado externo) e possam ser rodados em qualquer ambiente, inclusive em pipelines de CI/CD. O módulo `@nestjs/testing` é utilizado para construir módulos de teste com injeção de dependência, substituindo providers reais por implementações mock. A cobertura alvo é de **60-70%**, priorizando os caminhos críticos como a lógica de reserva, validação de assentos e confirmação de pagamento.
+
 ```bash
+# Rodar testes unitários
 npm run test
+
+# Rodar com cobertura
+npm run test:cov
+
+# Rodar em modo watch (re-executa a cada alteração)
+npm run test:watch
 ```
 
-### Testes E2E
+---
+
+### Testes de Integração/Concorrência
+
+Os testes E2E (end-to-end) são o pilar mais importante da suíte de testes deste projeto, pois validam o **fluxo completo de reserva em cenários de concorrência real**. Utilizando `supertest` com o servidor NestJS levantado em memória, os testes simulam múltiplos usuários fazendo requisições simultâneas para o **mesmo assento**, verificando que apenas **uma única reserva** é bem-sucedida enquanto as demais recebem `HTTP 409 Conflict`. O arquivo `bookings.e2e-spec.ts` configura um ambiente completo: cria um módulo de teste a partir do `AppModule` real, desabilita o `ThrottlerGuard` (para não bloquear requisições durante o teste), inicializa o banco com `synchronize: true` para criar as tabelas automaticamente, e executa cenários que cobrem reserva bem-sucedida, rejeição por assento indisponível, confirmação de pagamento, expiração de reserva e histórico de compras. Esses testes provam que as 3 camadas de proteção (Redis Lock + PostgreSQL `FOR UPDATE` + Idempotência) funcionam corretamente em conjunto.
 
 ```bash
-# Certifique-se de que PostgreSQL, Redis e Kafka estejam rodando
+# Certifique-se de que a infraestrutura está rodando
 docker-compose up -d postgres redis kafka zookeeper
 
+# Executar testes E2E
 npm run test:e2e
 ```
 
-### Teste de Fluxo Completo (Manual)
+---
+
+### Scripts de Teste
+
+Além dos testes automatizados com Jest, o projeto inclui **3 scripts bash** na pasta `scripts/` que permitem validar o sistema de forma manual e visual, especialmente úteis para demonstrar o comportamento de concorrência em um ambiente real com Docker.
+
+#### `scripts/seed-data.sh` — Popular Dados Iniciais
+
+Este script cria uma sessão de cinema (filme "Oppenheimer", sala 1, 24 assentos, R$ 25,00) via `POST /api/sessions` e retorna o `SESSION_ID` gerado. É o ponto de partida para qualquer teste manual — você precisa de uma sessão criada antes de poder reservar assentos.
 
 ```bash
-# Cria sessão → Reserva → Conflito → Pagamento → Verifica histórico
+bash scripts/seed-data.sh
+```
+
+#### `scripts/test-full-flow.sh` — Fluxo Completo de Compra
+
+Executa o ciclo completo de compra em **8 passos automatizados**: (1) cria uma sessão, (2) verifica disponibilidade, (3) reserva 2 assentos, (4) confirma que os assentos estão reservados, (5) tenta reservar o mesmo assento com outro usuário e valida o `HTTP 409`, (6) confirma o pagamento, (7) verifica que os assentos mudaram para `sold`, e (8) consulta o histórico de compras. Esse script é ideal para validar que **todo o fluxo funciona de ponta a ponta** após subir o ambiente.
+
+```bash
 bash scripts/test-full-flow.sh
 ```
 
-### Teste de Concorrência
+#### `scripts/concurrency-test.sh` — Teste de Concorrência (10 Usuários Simultâneos)
+
+Este é o script mais importante para demonstrar a proteção contra race conditions. Ele dispara **10 requisições HTTP simultâneas** (usando processos em background do bash) para reservar o **mesmo assento A1** da mesma sessão, cada uma com um `userId` diferente gerado via UUID. O resultado esperado é que **exatamente 1** requisição retorne `HTTP 201` (sucesso) e as outras **9** retornem `HTTP 409` (conflito). Se mais de 1 reserva for bem-sucedida, o script reporta falha de race condition. O script funciona em Linux, macOS e Windows (via Git Bash/WSL), gerando UUIDs de forma compatível com cada plataforma.
 
 ```bash
-# 1. Crie uma sessão e copie o ID
+# 1. Crie uma sessão e copie o SESSION_ID
 bash scripts/seed-data.sh
 
-# 2. Rode o teste com o SESSION_ID
+# 2. Rode o teste de concorrência
 bash scripts/concurrency-test.sh <SESSION_ID>
 ```
 
 **Resultado esperado:**
 
 ```
-📊 Results:
-✅ User #3: reservation-uuid-...
-❌ User #1: CONFLICT
-❌ User #2: CONFLICT
-❌ User #4: CONFLICT
-...
+Results:
+  Successful: 1
+  Conflicts: 9
+  Errors: 0
 
-🎉 TEST PASSED! Exactly 1 reservation succeeded (as expected)
+TEST PASSED! Exactly 1 reservation succeeded (as expected)
 ```
 
 > 10 requisições simultâneas para o **mesmo assento** → apenas **1** reserva bem-sucedida, 9 conflitos (HTTP 409).
@@ -1299,10 +1441,6 @@ O Dockerfile usa Node.js 18 que pode não ter `crypto` global. Atualize para Nod
 FROM node:20-alpine AS builder
 ```
 
-## 📄 Licença
-
-Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
 ---
 
 ## 👤 Autor
@@ -1310,7 +1448,7 @@ Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) par
 **[Davi SIlva]**
 
 - 📧 Email: xaviersilvadavi@gmail.com
-- 🔗 LinkedIn: [seu-perfil](https://linkedin.com/in/davi-xavier-silva)
+- 🔗 LinkedIn: [meu-perfil](https://linkedin.com/in/davi-xavier-silva)
 
 ---
 
@@ -1319,7 +1457,3 @@ Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) par
 - Equipe **Starsoft** pela oportunidade e desafio técnico
 
 ---
-
-<p align="center">
-  <b>Desenvolvido com ❤️ e muito café ☕</b>
-</p>

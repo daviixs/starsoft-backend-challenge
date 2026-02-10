@@ -8,14 +8,14 @@ echo "🎬 Full Flow Test - Cinema Booking System"
 echo "=========================================="
 echo ""
 
-# Cores
+
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# 1. Criar sessão
+
 echo -e "${BLUE}Step 1:${NC} Creating session..."
 SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/sessions" \
   -H "Content-Type: application/json" \
@@ -31,13 +31,13 @@ SESSION_ID=$(echo $SESSION_RESPONSE | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 echo -e "${GREEN}✅ Session created:${NC} $SESSION_ID"
 echo ""
 
-# 2. Verificar disponibilidade
+
 echo -e "${BLUE}Step 2:${NC} Checking availability..."
 curl -s "$BASE_URL/sessions/$SESSION_ID/availability" | jq '.availableSeats | length' | \
   xargs -I {} echo -e "${GREEN}✅ Available seats:${NC} {}"
 echo ""
 
-# 3. Fazer reserva
+
 echo -e "${BLUE}Step 3:${NC} Making reservation (seats A1, A2)..."
 USER_ID="test-user-$(date +%s)"
 
@@ -56,13 +56,13 @@ echo -e "${GREEN}✅ Reservation created:${NC} $RESERVATION_ID"
 echo -e "   Expires at: $EXPIRES_AT"
 echo ""
 
-# 4. Verificar que assentos estão reservados
+
 echo -e "${BLUE}Step 4:${NC} Verifying seats are reserved..."
 RESERVED_COUNT=$(curl -s "$BASE_URL/sessions/$SESSION_ID/availability" | jq '.reservedSeats | length')
 echo -e "${GREEN}✅ Reserved seats count:${NC} $RESERVED_COUNT (expected: 2)"
 echo ""
 
-# 5. Tentar reservar o mesmo assento (deve falhar)
+
 echo -e "${BLUE}Step 5:${NC} Testing race condition protection..."
 CONFLICT_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$BASE_URL/bookings/reserve" \
   -H "Content-Type: application/json" \
@@ -81,7 +81,7 @@ else
 fi
 echo ""
 
-# 6. Confirmar pagamento
+
 echo -e "${BLUE}Step 6:${NC} Confirming payment..."
 SALE_RESPONSE=$(curl -s -X POST "$BASE_URL/bookings/confirm" \
   -H "Content-Type: application/json" \
@@ -97,13 +97,13 @@ echo -e "${GREEN}✅ Payment confirmed:${NC} $SALE_ID"
 echo -e "   Total: R$ $(echo "scale=2; $TOTAL_AMOUNT / 100" | bc)"
 echo ""
 
-# 7. Verificar que assentos estão vendidos
+
 echo -e "${BLUE}Step 7:${NC} Verifying seats are sold..."
 SOLD_COUNT=$(curl -s "$BASE_URL/sessions/$SESSION_ID/availability" | jq '.soldSeats | length')
 echo -e "${GREEN}✅ Sold seats count:${NC} $SOLD_COUNT (expected: 2)"
 echo ""
 
-# 8. Verificar histórico de compras
+
 echo -e "${BLUE}Step 8:${NC} Checking purchase history..."
 PURCHASE_COUNT=$(curl -s "$BASE_URL/bookings/user/$USER_ID" | jq '.totalPurchases')
 echo -e "${GREEN}✅ Total purchases:${NC} $PURCHASE_COUNT (expected: 1)"

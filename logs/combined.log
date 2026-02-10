@@ -465,3 +465,131 @@
 {"level":"info","message":"Application is running on: http://localhost:3000/api","timestamp":"2026-02-09T23:37:51.434Z"}
 {"level":"info","message":"Swagger docs: http://localhost:3000/api/docs","timestamp":"2026-02-09T23:37:51.434Z"}
 {"level":"info","message":"Health check: http://localhost:3000/api/health","timestamp":"2026-02-09T23:37:51.435Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-10T00:23:51.499Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:23:51.529Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-10T00:23:51.530Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-10T00:23:51.531Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-10T00:23:51.531Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-10T00:23:51.536Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-10T00:23:51.536Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:23:51.537Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:23:51.538Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-10T00:23:51.538Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-10T00:23:51.611Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-10T00:23:51.612Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-10T00:23:51.914Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:23:51.914Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:23:51.914Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-10T00:23:51.915Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-10T00:23:51.916Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-10T00:23:51.945Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-10T00:23:51.950Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-10T00:23:51.950Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-10T00:23:51.952Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-10T00:23:51.952Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-10T00:23:51.953Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-10T00:23:51.954Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-10T00:23:51.954Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-10T00:23:51.955Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-10T00:23:51.956Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-10T00:23:51.956Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-10T00:23:51.962Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-10T00:23:51.990Z"}
+{"context":"KafkaConsumerService","level":"info","message":"Consumer subscribed to booking.reserved with group expiry-worker-group","timestamp":"2026-02-10T00:24:00.058Z"}
+{"context":"ReservationExpiryWorker","level":"info","message":"Reservation expiry worker initialized","timestamp":"2026-02-10T00:24:00.059Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2026-02-10T00:24:00.092Z"}
+{"level":"info","message":"Application is running on: http://localhost:3000/api","timestamp":"2026-02-10T00:24:00.095Z"}
+{"level":"info","message":"Swagger docs: http://localhost:3000/api/docs","timestamp":"2026-02-10T00:24:00.096Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","timestamp":"2026-02-10T00:24:00.096Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-10T00:38:42.847Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:38:42.876Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-10T00:38:42.877Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-10T00:38:42.877Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-10T00:38:42.878Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-10T00:38:42.888Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-10T00:38:42.888Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:38:42.889Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:38:42.890Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-10T00:38:42.891Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-10T00:38:42.946Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-10T00:38:42.947Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-10T00:38:43.159Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:38:43.159Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:38:43.160Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-10T00:38:43.160Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-10T00:38:43.161Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-10T00:38:43.192Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-10T00:38:43.196Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-10T00:38:43.197Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-10T00:38:43.198Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-10T00:38:43.198Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-10T00:38:43.199Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-10T00:38:43.199Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-10T00:38:43.200Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-10T00:38:43.201Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-10T00:38:43.201Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-10T00:38:43.202Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-10T00:38:43.207Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-10T00:38:43.229Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-10T00:39:19.862Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:39:19.892Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-10T00:39:19.894Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-10T00:39:19.894Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-10T00:39:19.895Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-10T00:39:19.904Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-10T00:39:19.904Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:39:19.905Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-10T00:39:19.906Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-10T00:39:19.907Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-10T00:39:19.970Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-10T00:39:19.971Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-10T00:39:20.190Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:39:20.190Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-10T00:39:20.190Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-10T00:39:20.191Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-10T00:39:20.191Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-10T00:39:20.221Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-10T00:39:20.225Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-10T00:39:20.226Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-10T00:39:20.227Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-10T00:39:20.227Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-10T00:39:20.228Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-10T00:39:20.229Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-10T00:39:20.230Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-10T00:39:20.231Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-10T00:39:20.231Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-10T00:39:20.233Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-10T00:39:20.244Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-10T00:39:20.267Z"}
+{"context":"KafkaConsumerService","level":"info","message":"Consumer subscribed to booking.reserved with group expiry-worker-group","timestamp":"2026-02-10T00:39:33.604Z"}
+{"context":"ReservationExpiryWorker","level":"info","message":"Reservation expiry worker initialized","timestamp":"2026-02-10T00:39:33.604Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2026-02-10T00:39:33.632Z"}
+{"level":"info","message":"Application is running on: http://localhost:3000/api","timestamp":"2026-02-10T00:39:33.636Z"}
+{"level":"info","message":"Swagger docs: http://localhost:3000/api/docs","timestamp":"2026-02-10T00:39:33.636Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","timestamp":"2026-02-10T00:39:33.636Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:00.009Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:00.010Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:10.020Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:10.021Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:20.009Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:20.010Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:30.016Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:30.017Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:40.018Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:40.019Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:50.013Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:49:50.015Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:00.019Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:00.020Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:10.024Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:10.025Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:20.017Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:20.018Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:30.016Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:30.017Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:40.011Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:40.012Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:50.010Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:50:50.010Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:51:00.024Z"}
+{"context":"ReservationExpiryWorker","level":"error","message":"Error checking expired reservations:","stack":[{"code":"ECONNREFUSED"}],"timestamp":"2026-02-10T00:51:00.025Z"}

@@ -33,7 +33,7 @@ export class ReserveSeatsUseCase {
   async execute(dto: ReserveSeatsDto): Promise<Reservation> {
     const { userId, sessionId, seatNumbers } = dto;
 
-    // Verificar se sessão existe
+    
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
     });
@@ -41,7 +41,7 @@ export class ReserveSeatsUseCase {
       throw new SessionNotFoundException(sessionId);
     }
 
-    // Idempotência
+    
     const idempotencyKey = this.buildIdempotencyKey(
       userId,
       sessionId,
@@ -50,7 +50,7 @@ export class ReserveSeatsUseCase {
     const cached = await this.checkCache(idempotencyKey);
     if (cached) return cached;
 
-    // Adquirir locks
+    
     const locks = await this.acquireLocks(sessionId, seatNumbers);
     if (!locks) {
       throw new SeatUnavailableException(seatNumbers);
@@ -73,7 +73,7 @@ export class ReserveSeatsUseCase {
     await queryRunner.startTransaction();
 
     try {
-      // SELECT FOR UPDATE (lock pessimista)
+      
       const seats = await queryRunner.manager.find(Seat, {
         where: {
           sessionId: dto.sessionId,
@@ -93,7 +93,7 @@ export class ReserveSeatsUseCase {
 
       const expiresAt = new Date(Date.now() + this.RESERVATION_TTL_MS);
 
-      // Atualizar status dos assentos
+      
       await queryRunner.manager.update(
         Seat,
         { id: In(seats.map((s: Seat) => s.id)) },
@@ -103,7 +103,7 @@ export class ReserveSeatsUseCase {
         },
       );
 
-      // Criar reserva
+      
       const reservation = queryRunner.manager.create(Reservation, {
         userId: dto.userId,
         sessionId: dto.sessionId,

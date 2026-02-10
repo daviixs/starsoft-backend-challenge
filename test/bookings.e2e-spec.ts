@@ -40,7 +40,7 @@ describe('Bookings E2E Tests', () => {
     process.env.DATABASE_NAME = 'cinema_booking_bookings_test';
     process.env.KAFKAJS_NO_PARTITIONER_WARNING = '1';
 
-    // Criar módulo de teste
+    
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -50,7 +50,7 @@ describe('Bookings E2E Tests', () => {
 
     app = moduleFixture.createNestApplication();
 
-    // Aplicar configurações globais (igual ao main.ts)
+    
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -63,11 +63,11 @@ describe('Bookings E2E Tests', () => {
 
     await app.init();
 
-    // Obter DataSource para limpar DB entre testes
+    
     dataSource = moduleFixture.get<DataSource>(DataSource);
     await dataSource.synchronize(true);
 
-    // Criar sessão para todos os testes
+    
     const sessionResponse = await request(app.getHttpServer())
       .post('/api/sessions')
       .send({
@@ -91,10 +91,10 @@ describe('Bookings E2E Tests', () => {
     }
   });
 
-  // Limpar dados entre testes (opcional)
+  
   afterEach(async () => {
-    // Se quiser resetar entre cada teste
-    // await dataSource.synchronize(true);
+    
+    
   });
 
   describe('POST /api/bookings/reserve', () => {
@@ -115,7 +115,7 @@ describe('Bookings E2E Tests', () => {
     });
 
     it('should reject reservation for unavailable seat', async () => {
-      // Primeira reserva
+      
       const firstResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
@@ -127,7 +127,7 @@ describe('Bookings E2E Tests', () => {
 
       expect(firstResponse.body).toHaveProperty('id');
 
-      // Tenta reservar o mesmo assento (deve falhar)
+      
       const conflictResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
@@ -161,7 +161,7 @@ describe('Bookings E2E Tests', () => {
         seatNumbers: ['C1', 'C2'],
       };
 
-      // Primeira requisição
+      
       const firstResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send(payload)
@@ -169,13 +169,13 @@ describe('Bookings E2E Tests', () => {
 
       const firstReservationId = firstResponse.body.id;
 
-      // Segunda requisição idêntica (dentro de 30s)
+      
       const secondResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send(payload)
         .expect(201);
 
-      // Deve retornar a mesma reserva
+      
       expect(secondResponse.body.id).toBe(firstReservationId);
     });
   });
@@ -183,7 +183,7 @@ describe('Bookings E2E Tests', () => {
   describe('POST /api/bookings/confirm', () => {
     it('should confirm payment successfully', async () => {
       const userId = makeUserId();
-      // Criar reserva
+      
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
@@ -195,7 +195,7 @@ describe('Bookings E2E Tests', () => {
 
       const reservationId = reservationResponse.body.id;
 
-      // Confirmar pagamento
+      
       const saleResponse = await request(app.getHttpServer())
         .post('/api/bookings/confirm')
         .send({
@@ -206,7 +206,7 @@ describe('Bookings E2E Tests', () => {
 
       expect(saleResponse.body).toHaveProperty('id');
       expect(saleResponse.body).toHaveProperty('totalAmountCents');
-      expect(saleResponse.body.totalAmountCents).toBe(2500); // 1 assento * 2500
+      expect(saleResponse.body.totalAmountCents).toBe(2500); 
       expect(saleResponse.body.userId).toBe(userId);
     });
 
@@ -223,7 +223,7 @@ describe('Bookings E2E Tests', () => {
 
     it('should reject double confirmation', async () => {
       const userId = makeUserId();
-      // Criar e confirmar reserva
+      
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
@@ -235,7 +235,7 @@ describe('Bookings E2E Tests', () => {
 
       const reservationId = reservationResponse.body.id;
 
-      // Primeira confirmação
+      
       await request(app.getHttpServer())
         .post('/api/bookings/confirm')
         .send({
@@ -244,7 +244,7 @@ describe('Bookings E2E Tests', () => {
         })
         .expect(201);
 
-      // Segunda confirmação (deve retornar a mesma venda ou 409)
+      
       const secondConfirm = await request(app.getHttpServer())
         .post('/api/bookings/confirm')
         .send({
@@ -252,7 +252,7 @@ describe('Bookings E2E Tests', () => {
           userId,
         });
 
-      // Pode ser 201 (idempotente) ou 409 (já confirmado)
+      
       expect([201, 409]).toContain(secondConfirm.status);
     });
   });
@@ -275,7 +275,7 @@ describe('Bookings E2E Tests', () => {
     it('should return user purchase history', async () => {
       const userId = makeUserId();
 
-      // Criar e confirmar uma compra
+      
       const reservationResponse = await request(app.getHttpServer())
         .post('/api/bookings/reserve')
         .send({
@@ -293,7 +293,7 @@ describe('Bookings E2E Tests', () => {
         })
         .expect(201);
 
-      // Buscar histórico
+      
       const historyResponse = await request(app.getHttpServer())
         .get(`/api/bookings/user/${userId}`)
         .expect(200);

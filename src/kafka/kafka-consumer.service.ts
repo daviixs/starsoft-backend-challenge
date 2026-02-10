@@ -22,9 +22,6 @@ export class KafkaConsumerService implements OnModuleDestroy {
     }
   }
 
-  /**
-   * Registra um consumer para um tópico
-   */
   async subscribe(
     topic: string,
     groupId: string,
@@ -45,15 +42,9 @@ export class KafkaConsumerService implements OnModuleDestroy {
           this.logger.debug(`Message received from ${topic}:`, data);
 
           await handler(data);
-
-          // Commit manual após sucesso
-          // await consumer.commitOffsets([
-          //   { topic, partition: payload.partition, offset: (parseInt(message.offset) + 1).toString() }
-          // ]);
         } catch (error) {
           this.logger.error(`Error processing message from ${topic}:`, error);
-          // Re-throw to avoid acknowledging a failed message processing.
-          // This keeps at-least-once semantics and allows retry by Kafka.
+
           throw error;
         }
       },

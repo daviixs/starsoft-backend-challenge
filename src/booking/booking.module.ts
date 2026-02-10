@@ -12,7 +12,7 @@ import { ReservationExpiryWorker } from '../workers/reservation-expiry.worker';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Reservation, Sale, Seat, Session]),
-    ScheduleModule.forRoot(), // Habilita Cron jobs
+    ScheduleModule.forRoot(),
   ],
   controllers: [BookingsController],
   providers: [BookingsService, ReservationExpiryWorker],

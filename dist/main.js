@@ -74,10 +74,10 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     const swaggerConfig = new swagger_1.DocumentBuilder()
         .setTitle('Cinema Booking API')
-        .setDescription('API para reserva de assentos de cinema com proteção contra concorrência, locks distribuídos (Redis) e mensageria (Kafka).')
+        .setDescription('API para reserva de assentos de cinema com protecao contra concorrencia, locks distribuidos (Redis) e mensageria (Kafka).')
         .setVersion('1.0')
-        .addTag('Sessions', 'Gerenciamento de sessões de cinema')
-        .addTag('Bookings', 'Reserva e confirmação de assentos')
+        .addTag('Sessions', 'Gerenciamento de sessoes de cinema')
+        .addTag('Bookings', 'Reserva e confirmacao de assentos')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
     swagger_1.SwaggerModule.setup('api/docs', app, document);

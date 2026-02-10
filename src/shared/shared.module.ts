@@ -3,7 +3,7 @@ import { RedisLockService } from '../redis/redis-lock.service';
 import { KafkaProducerService } from '../kafka/kafka.producer.service';
 import { KafkaConsumerService } from '../kafka/kafka-consumer.service';
 
-@Global() // Torna disponível em todos os módulos
+@Global() 
 @Module({
   providers: [RedisLockService, KafkaProducerService, KafkaConsumerService],
   exports: [RedisLockService, KafkaProducerService, KafkaConsumerService],
