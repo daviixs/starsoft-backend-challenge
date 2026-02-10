@@ -52,9 +52,9 @@ export class KafkaConsumerService implements OnModuleDestroy {
           // ]);
         } catch (error) {
           this.logger.error(`Error processing message from ${topic}:`, error);
-
-          // TODO: Implementar DLQ (Dead Letter Queue)
-          // await this.sendToDeadLetterQueue(topic, message, error);
+          // Re-throw to avoid acknowledging a failed message processing.
+          // This keeps at-least-once semantics and allows retry by Kafka.
+          throw error;
         }
       },
     });

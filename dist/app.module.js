@@ -52,12 +52,14 @@ exports.AppModule = AppModule = __decorate([
             booking_module_1.BookingsModule,
             health_module_1.HealthModule,
         ],
-        providers: [
-            {
-                provide: core_1.APP_GUARD,
-                useClass: throttler_1.ThrottlerGuard,
-            },
-        ],
+        providers: process.env.NODE_ENV === 'test'
+            ? []
+            : [
+                {
+                    provide: core_1.APP_GUARD,
+                    useClass: throttler_1.ThrottlerGuard,
+                },
+            ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

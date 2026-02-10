@@ -359,3 +359,109 @@
 {"level":"info","message":"Application is running on: http://localhost:3000/api","timestamp":"2026-02-09T23:16:25.498Z"}
 {"level":"info","message":"Swagger docs: http://localhost:3000/api/docs","timestamp":"2026-02-09T23:16:25.499Z"}
 {"level":"info","message":"Health check: http://localhost:3000/api/health","timestamp":"2026-02-09T23:16:25.499Z"}
+{"context":"SessionsService","level":"info","message":"Session created: 7527e3a4-e170-4ac5-97a2-061fd1fe421e with 40 seats","timestamp":"2026-02-09T23:28:10.734Z"}
+{"context":"BookingsController","level":"info","message":"Reservation request: User 358edc95-1d1f-449c-bd02-a4e540bcb766, Session 7527e3a4-e170-4ac5-97a2-061fd1fe421e, Seats A1","timestamp":"2026-02-09T23:29:06.556Z"}
+{"context":"BookingsController","level":"info","message":"Reservation request: User 5634fa6c-2176-4af8-b50c-b6e193283644, Session 7527e3a4-e170-4ac5-97a2-061fd1fe421e, Seats A1","timestamp":"2026-02-09T23:29:06.564Z"}
+{"context":"BookingsController","level":"info","message":"Reservation request: User 149f743a-bd0c-4862-9685-6fa4b6e9ac99, Session 7527e3a4-e170-4ac5-97a2-061fd1fe421e, Seats A1","timestamp":"2026-02-09T23:29:06.571Z"}
+{"context":"BookingsController","level":"info","message":"Reservation request: User ce0938a1-1734-4e3b-a4ab-cb825edcee3d, Session 7527e3a4-e170-4ac5-97a2-061fd1fe421e, Seats A1","timestamp":"2026-02-09T23:29:06.579Z"}
+{"context":"BookingsController","level":"info","message":"Reservation request: User 93d896c3-3700-4b7f-a278-a6d5e813b5cf, Session 7527e3a4-e170-4ac5-97a2-061fd1fe421e, Seats A1","timestamp":"2026-02-09T23:29:06.583Z"}
+{"context":"BookingsService","level":"info","message":"Reservation created: 0c58ef3b-6f15-4e8f-acee-54343235d040 for seats A1","timestamp":"2026-02-09T23:29:06.705Z"}
+{"context":"BookingsController","level":"info","message":"Reservation created: 0c58ef3b-6f15-4e8f-acee-54343235d040","timestamp":"2026-02-09T23:29:06.723Z"}
+{"context":"RedisLockService","level":"warn","message":"Failed to acquire lock after 3 retries: seat:lock:7527e3a4-e170-4ac5-97a2-061fd1fe421e:A1","timestamp":"2026-02-09T23:29:06.915Z"}
+{"context":"ReservationExpiryWorker","level":"info","message":"Reservation expired: 0c58ef3b-6f15-4e8f-acee-54343235d040","timestamp":"2026-02-09T23:29:37.670Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-09T23:37:28.292Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:28.322Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-09T23:37:28.323Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-09T23:37:28.324Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-09T23:37:28.324Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-09T23:37:28.329Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-09T23:37:28.329Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:28.329Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:28.330Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-09T23:37:28.331Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-09T23:37:28.385Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-09T23:37:28.386Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-09T23:37:28.638Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:28.638Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:28.638Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-09T23:37:28.639Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-09T23:37:28.640Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-09T23:37:28.674Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-09T23:37:28.679Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-09T23:37:28.680Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-09T23:37:28.681Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-09T23:37:28.682Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-09T23:37:28.683Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-09T23:37:28.683Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-09T23:37:28.684Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-09T23:37:28.685Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-09T23:37:28.685Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-09T23:37:28.686Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-09T23:37:28.692Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-09T23:37:28.717Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-09T23:37:33.661Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:33.692Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-09T23:37:33.693Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-09T23:37:33.693Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-09T23:37:33.694Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-09T23:37:33.698Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-09T23:37:33.699Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:33.700Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:33.700Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-09T23:37:33.701Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-09T23:37:33.755Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-09T23:37:33.755Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-09T23:37:33.995Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:33.995Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:33.996Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-09T23:37:33.996Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-09T23:37:33.997Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-09T23:37:34.032Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-09T23:37:34.036Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-09T23:37:34.036Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-09T23:37:34.037Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-09T23:37:34.038Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-09T23:37:34.039Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-09T23:37:34.039Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-09T23:37:34.040Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-09T23:37:34.041Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-09T23:37:34.041Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-09T23:37:34.042Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-09T23:37:34.048Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-09T23:37:34.072Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2026-02-09T23:37:37.954Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:37.994Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigHostModule dependencies initialized","timestamp":"2026-02-09T23:37:37.995Z"}
+{"context":"InstanceLoader","level":"info","message":"ThrottlerModule dependencies initialized","timestamp":"2026-02-09T23:37:37.996Z"}
+{"context":"InstanceLoader","level":"info","message":"DiscoveryModule dependencies initialized","timestamp":"2026-02-09T23:37:37.996Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2026-02-09T23:37:38.002Z"}
+{"context":"InstanceLoader","level":"info","message":"ConfigModule dependencies initialized","timestamp":"2026-02-09T23:37:38.003Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:38.003Z"}
+{"context":"InstanceLoader","level":"info","message":"ScheduleModule dependencies initialized","timestamp":"2026-02-09T23:37:38.004Z"}
+{"context":"InstanceLoader","level":"info","message":"TerminusModule dependencies initialized","timestamp":"2026-02-09T23:37:38.005Z"}
+{"context":"InstanceLoader","level":"info","message":"SharedModule dependencies initialized","timestamp":"2026-02-09T23:37:38.062Z"}
+{"context":"InstanceLoader","level":"info","message":"HealthModule dependencies initialized","timestamp":"2026-02-09T23:37:38.062Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmCoreModule dependencies initialized","timestamp":"2026-02-09T23:37:38.302Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:38.303Z"}
+{"context":"InstanceLoader","level":"info","message":"TypeOrmModule dependencies initialized","timestamp":"2026-02-09T23:37:38.303Z"}
+{"context":"InstanceLoader","level":"info","message":"SessionsModule dependencies initialized","timestamp":"2026-02-09T23:37:38.304Z"}
+{"context":"InstanceLoader","level":"info","message":"BookingsModule dependencies initialized","timestamp":"2026-02-09T23:37:38.304Z"}
+{"context":"RoutesResolver","level":"info","message":"SessionsController {/api/sessions}:","timestamp":"2026-02-09T23:37:38.335Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, POST} route","timestamp":"2026-02-09T23:37:38.339Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions, GET} route","timestamp":"2026-02-09T23:37:38.340Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/sessions/:id/availability, GET} route","timestamp":"2026-02-09T23:37:38.341Z"}
+{"context":"RoutesResolver","level":"info","message":"BookingsController {/api/bookings}:","timestamp":"2026-02-09T23:37:38.341Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reserve, POST} route","timestamp":"2026-02-09T23:37:38.342Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/confirm, POST} route","timestamp":"2026-02-09T23:37:38.343Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/user/:userId, GET} route","timestamp":"2026-02-09T23:37:38.343Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/bookings/reservation/:id, GET} route","timestamp":"2026-02-09T23:37:38.344Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:","timestamp":"2026-02-09T23:37:38.344Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route","timestamp":"2026-02-09T23:37:38.345Z"}
+{"context":"RedisLockService","level":"info","message":"Redis client initialized","timestamp":"2026-02-09T23:37:38.351Z"}
+{"context":"KafkaProducerService","level":"info","message":"Kafka producer connected","timestamp":"2026-02-09T23:37:38.375Z"}
+{"context":"KafkaConsumerService","level":"info","message":"Consumer subscribed to booking.reserved with group expiry-worker-group","timestamp":"2026-02-09T23:37:51.392Z"}
+{"context":"ReservationExpiryWorker","level":"info","message":"Reservation expiry worker initialized","timestamp":"2026-02-09T23:37:51.392Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2026-02-09T23:37:51.430Z"}
+{"level":"info","message":"Application is running on: http://localhost:3000/api","timestamp":"2026-02-09T23:37:51.434Z"}
+{"level":"info","message":"Swagger docs: http://localhost:3000/api/docs","timestamp":"2026-02-09T23:37:51.434Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","timestamp":"2026-02-09T23:37:51.435Z"}

@@ -53,11 +53,14 @@ import { HealthModule } from './health/health.module';
     // Health check
     HealthModule,
   ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
+  providers:
+    process.env.NODE_ENV === 'test'
+      ? []
+      : [
+          {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+          },
+        ],
 })
 export class AppModule {}

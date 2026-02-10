@@ -44,6 +44,7 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
                 }
                 catch (error) {
                     this.logger.error(`Error processing message from ${topic}:`, error);
+                    throw error;
                 }
             },
         });

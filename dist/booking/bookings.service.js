@@ -138,7 +138,6 @@ let BookingsService = BookingsService_1 = class BookingsService {
         try {
             const reservation = await queryRunner.manager.findOne(reservation_entity_1.Reservation, {
                 where: { id: reservationId, userId },
-                relations: ['session'],
                 lock: { mode: 'pessimistic_write' },
             });
             if (!reservation) {

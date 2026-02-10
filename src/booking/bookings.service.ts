@@ -190,7 +190,6 @@ export class BookingsService {
       // Buscar reserva com lock pessimista
       const reservation = await queryRunner.manager.findOne(Reservation, {
         where: { id: reservationId, userId },
-        relations: ['session'],
         lock: { mode: 'pessimistic_write' },
       });
 
